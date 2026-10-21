@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BiblioGestor — Biblioteca Municipal</title>
+<style>
+  :root{
+    --bg:#f1f6f9; --card:#ffffff; --ink:#12303f; --muted:#657f8c;
+    --line:#dbe7ee; --azul:#1d5b7a; --azul-claro:#e4eff5;
+    --verde:#2f8f6e; --verde-bg:#e2f4ec; --vermelho:#bf4238; --vermelho-bg:#fbe9e6;
+    --amarelo:#a8791f; --amarelo-bg:#fdf2da; --raio:16px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); line-height:1.45;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{max-width:780px;margin:0 auto;padding:0 14px 70px}
+  h1,h2,h3,p{margin:0}
+  h1{font-size:1.6rem;letter-spacing:-.02em}
+  h2{font-size:1rem;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:.82rem}
+  .topo{
+    position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:13px 14px;margin:0 -14px 14px;background:rgba(255,255,255,.94);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(8px)
+  }
+  .marca{font-weight:700;font-size:.98rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--raio);padding:16px;margin-bottom:12px;box-shadow:0 2px 16px -12px rgba(16,58,78,.45)}
+  .card h2{margin-bottom:10px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:13px 16px;border:0;border-radius:14px;background:var(--azul);color:#fff;
+    font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .12s ease,opacity .12s ease
+  }
+  .btn:active{transform:scale(.985)}
+  .btn.sec{background:#fff;color:var(--azul);border:1px solid var(--line)}
+  .btn.verde{background:var(--verde)}
+  .btn.vermelho{background:var(--vermelho)}
+  .btn.mini{width:auto;padding:9px 14px;font-size:.82rem;border-radius:11px}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .link{background:none;border:0;color:var(--azul);font-weight:600;font-size:.88rem;cursor:pointer;text-decoration:underline;padding:8px}
+  .col{display:flex;flex-direction:column;gap:10px}
+  .form{display:flex;flex-direction:column;gap:11px}
+  label{display:flex;flex-direction:column;gap:6px;font-size:.82rem;font-weight:600;color:#3d5b6b}
+  .input{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fbfdfe;
+    font-size:.95rem;color:var(--ink);font-family:inherit
+  }
+  .input:focus{outline:2px solid #b9dced;outline-offset:1px;background:#fff}
+  textarea.input{resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chipnav{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+  .chipnav::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;padding:9px 14px;border-radius:11px;border:1px solid var(--line);background:#fff;
+    color:#3d5b6b;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap
+  }
+  .chip.on{background:var(--azul);border-color:var(--azul);color:#fff}
+  .badge{margin-left:6px;background:rgba(0,0,0,.14);border-radius:7px;padding:0 5px;font-size:.72rem}
+  .item{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:10px;background:#fff}
+  .item-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .titulo{font-weight:650;font-size:.94rem;letter-spacing:-.01em}
+  .datas{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--muted);font-size:.78rem}
+  .tag{flex:0 0 auto;font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:8px}
+  .tag.azul{background:var(--azul-claro);color:var(--azul)}
+  .tag.verde{background:var(--verde-bg);color:var(--verde)}
+  .tag.vermelho{background:var(--vermelho-bg);color:var(--vermelho)}
+  .tag.amarelo{background:var(--amarelo-bg);color:var(--amarelo)}
+  .vazio{text-align:center;padding:26px 12px;color:var(--muted);font-size:.86rem;border:1px dashed var(--line);border-radius:13px;margin-top:10px}
+  .hero{min-height:88vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:24px 6px}
+  .logo{font-size:2.6rem;width:82px;height:82px;border-radius:26px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;box-shadow:0 12px 30px -20px rgba(16,58,78,.6)}
+  .hero .col{width:100%;max-width:330px;margin-top:8px}
+  .rodape{font-size:.74rem;color:var(--muted);max-width:320px;margin-top:6px}
+  .tela{max-width:420px;margin:0 auto;padding:22px 0}
+  .voltar{background:none;border:0;color:var(--azul);font-weight:600;font-size:.85rem;cursor:pointer;padding:6px 0;margin-bottom:8px}
+  .prog{height:9px;border-radius:99px;background:var(--azul-claro);overflow:hidden;margin:8px 0 6px}
+  .prog span{display:block;height:100%;background:var(--verde);border-radius:99px}
+  .linha{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px;margin-top:9px;cursor:pointer;font-family:inherit;color:inherit}
+  .avatar{width:38px;height:38px;border-radius:12px;background:var(--azul-claro);color:var(--azul);display:grid;place-items:center;font-weight:700;font-size:.82rem;flex:0 0 auto}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .livro{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:13px;background:#fff;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
+  .capa{width:100%;aspect-ratio:3/4;border-radius:10px;object-fit:cover;background:var(--azul-claro);display:grid;place-items:center;color:var(--azul);font-weight:700;font-size:.8rem;text-align:center;padding:6px}
+  .capa.grande{max-width:150px;margin:0 auto}
+  .estrelas{color:#d99a2b;font-size:.85rem;letter-spacing:1px}
+  .linha-info{display:flex;justify-content:space-between;gap:10px;font-size:.83rem;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .linha-info:last-child{border-bottom:0}
+  .aviso{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:#12303f;color:#fff;padding:11px 18px;border-radius:12px;font-size:.85rem;opacity:0;pointer-events:none;transition:.25s ease;z-index:60;max-width:90vw;text-align:center}
+  .aviso.on{opacity:1;transform:translate(-50%,0)}
+  .contagem{font-size:.78rem;color:var(--muted)}
+  .row-between{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .erro{color:var(--vermelho);font-size:.82rem;font-weight:600;min-height:18px}
+  @media(min-width:640px){ .grade{grid-template-columns:1fr 1fr 1fr} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="aviso" class="aviso"></div>
+<script>
+(function () {
+  'use strict';
+
+  var CHAVE = 'bibliogestor.v1';
+  var NOME_BIB = 'Biblioteca Municipal';
+  var PONTOS_POR_RESUMO = 10;
+
+  var db = null;
+  var rota = { tela: 'inicio', login: 'biblio', aba: 'acervo', livro: null, leitor: null };
+  var filtros = { acervo: '', catalogo: '', disponiveis: false, histLeitor: '', histLivro: '', histSit: '' };
+  var ultimaTela = null;
+
+  /* ---------- utilidades ---------- */
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function hojeISO() { return new Date().toISOString().slice(0, 10); }
+  function somaDias(iso, n) {
+    var d = new Date(iso + 'T12:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+  function diasAtraso(iso) {
+    if (!iso) return 0;
+    var hoje = new Date(hojeISO() + 'T12:00:00');
+    var prev = new Date(iso + 'T12:00:00');
+    return Math.max(0, Math.floor((hoje - prev) / 86400000));
+  }
+  function fmtData(iso) {
+    if (!iso) return '—';
+    var p = String(iso).slice(0, 10).split('-');
+    return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso);
+  }
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function iniciais(nome) {
+    var p = String(nome || '').trim().split(/\s+/);
+    return ((p[0] || '')[0] || '') + ((p[p.length - 1] || '')[0] || '');
+  }
+  function aviso(msg) {
+    var el = document.getElementById('aviso');
+    el.textContent = msg;
+    el.classList.add('on');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('on'); }, 2600);
+  }
+
+  /* ---------- dados ---------- */
+  function estadoInicial() {
+    return {
+      usuarios: [], livros: [], emprestimos: [], avaliacoes: [],
+      resumos: [], pontuacoes: [], metas: [], entregas: [], sessao: null
+    };
+  }
+  function carregar() {
+    try {
+      var raw = localStorage.getItem(CHAVE);
+      if (raw) {
+        var d = JSON.parse(raw);
+        var base = estadoInicial();
+        for (var k in base) if (!(k in d)) d[k] = base[k];
+        return d;
+      }
+    } catch (e) { /* dados corrompidos: recomeça */ }
+    return estadoInicial();
+  }
+  function salvar() { localStorage.setItem(CHAVE, JSON.stringify(db)); }
+
+  function usuarioAtual() {
+    if (!db.sessao) return null;
+    return db.usuarios.filter(function (u) { return u.id === db.sessao; })[0] || null;
+  }
+  function leitores() {
+    return db.usuarios.filter(function (u) { return u.papel === 'leitor'; })
+      .sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); });
+  }
+  function proximoNumeroLivro() {
+    return db.livros.reduce(function (m, l) { return Math.max(m, l.numero || 0); }, 0) + 1;
+  }
+  function proximoNumeroLeitor() {
+    return db.usuarios.reduce(function (m, u) {
+      return u.papel === 'leitor' ? Math.max(m, u.numero || 0) : m;
+    }, 0) + 1;
+  }
+  function pontosDe(leitorId) {
+    var p = db.pontuacoes.filter(function (x) { return x.leitor_id === leitorId; })[0];
+    return p ? p.pontos || 0 : 0;
+  }
+  function creditar(leitorId, qtd) {
+    var p = db.pontuacoes.filter(function (x) { return x.leitor_id === leitorId; })[0];
+    var u = db.usuarios.filter(function (x) { return x.id === leitorId; })[0];
+    if (!p) {
+      p = { id: uid(), leitor_id: leitorId, leitor_nome: u ? u.nome : '', pontos: 0 };
+      db.pontuacoes.push(p);
+    }
+    p.pontos = (p.pontos || 0) + qtd;
+    if (u) p.leitor_nome = u.nome;
+  }
+  function ativos() {
+    return db.emprestimos.filter(function (e) { return e.status === 'ativo'; })
+      .sort(function (a, b) { return String(a.data_prevista).localeCompare(String(b.data_prevista)); });
+  }
+  function atrasados() {
+    return ativos().filter(function (e) { return diasAtraso(e.data_prevista) > 0; });
+  }
+  function pendentes() {
+    return db.resumos.filter(function (r) { return r.status === 'pendente'; })
+      .sort(function (a, b) { return String(b.criado).localeCompare(String(a.criado)); });
+  }
+  function emprestimosDoLeitor(id) {
+    return db.emprestimos.filter(function (e) { return e.leitor_id === id; })
+      .sort(function (a, b) { return String(b.data_emprestimo).localeCompare(String(a.data_emprestimo)); });
+  }
+
+  /* ---------- navegação ---------- */
+  function irPara(tela, aba) {
+    rota.tela = tela;
+    if (aba) rota.aba = aba;
+    rota.livro = null;
+    rota.leitor = null;
+    render();
+  }
+
+  var A = {};
+  window.A = A;
+
+  A.voltarInicio = function () { rota.tela = 'inicio'; rota.login = 'biblio'; render(); };
+  A.abrirLogin = function (tipo) { rota.tela = 'login'; rota.login = tipo; render(); };
+  A.abrirCadastro = function () { rota.tela = 'cadastro'; render(); };
+  A.irAba = function (aba) { rota.aba = aba; rota.livro = null; rota.leitor = null; render(); };
+  A.voltar = function () { rota.livro = null; rota.leitor = null; render(); };
+  A.abrirLivro = function (id) { rota.livro = id; render(); };
+  A.abrirLeitor = function (id) { rota.leitor = id; render(); };
+
+  A.sair = function () {
+    db.sessao = null;
+    salvar();
+    rota.tela = 'inicio';
+    rota.livro = null;
+    rota.leitor = null;
+    render();
+  };
+
+  /* ---------- autenticação ---------- */
+  function semBibliotecario() {
+    return db.usuarios.filter(function (u) { return u.papel === 'bibliotecario'; }).length === 0;
+  }
+
+  A.entrar = function (ev) {
+    ev.preventDefault();
+    var f = ev.target;
+    var email = String(f.email.value || '').trim().toLowerCase();
+    var senha = f.senha.value;
+    var erroEl = document.getElementById('erro');
+    erroEl.textContent = '';
+
+    if (!email || !senha) { erroEl.textContent = 'Preencha e-mail e senha.'; return; }
+
+    if (rota.login === 'biblio' && semBibliotecario()) {
+      var nome = String(f.nome.value || '').trim();
+      if (!nome) { erroEl.textContent = 'Informe seu nome.'; return; }
+      if (db.usuarios.some(function (x) { return x.email === email; })) {
+        erroEl.textContent = 'Já existe uma conta com este e-mail.'; return;
+      }
+      var novo = { id: uid(), papel: 'bibliotecario', nome: nome, email: email, senha: senha, numero: null };
+      db.usuarios.push(novo);
+      db.sessao = novo.id;
+      salvar();
+      irPara('painel', 'acervo');
+      return;
+    }
+
+    var u = db.usuarios.filter(function (x) { return x.email === email; })[0];
+    if (!u || u.senha !== senha) { erroEl.textContent = 'E-mail ou senha incorretos.'; return; }
+    if (rota.login === 'biblio' && u.papel !== 'bibliotecario') {
+      erroEl.textContent = 'Esta conta é de leitor. Use a entrada de leitor.'; return;
+    }
+    if (rota.login === 'leitor' && u.papel !== 'leitor') {
+      erroEl.textContent = 'Esta conta é de bibliotecário. Use a entrada de bibliotecário.'; return;
+    }
+    db.sessao = u.id;
+    salvar();
+    if (u.papel === 'bibliotecario') irPara('painel', 'acervo');
+    else irPara('leitor', 'catalogo');
+  };
+
+  A.cadastrarLeitor = function (ev) {
+    ev.preventDefault();
+    var f = ev.target;
+    var erroEl = document.getElementById('erro');
+    erroEl.textContent = '';
+    var nome = String(f.nome.value || '').trim();
+    var email = String(f.email.value || '').trim().toLowerCase();
+    var senha = f.senha.value;
+    var confirma = f.confirma.value;
+
+    if (!nome || !email) { erroEl.textContent = 'Preencha nome e e-mail.'; return; }
+    if (senha.length < 4) { erroEl.textContent = 'A senha precisa de pelo menos 4 caracteres.'; return; }
+    if (senha !== confirma) { erroEl.textContent = 'As senhas não são iguais.'; return; }
+    if (db.usuarios.some(function (u) { return u.email === email; })) {
+      erroEl.textContent = 'Já existe uma conta com este e-mail.'; return;
+    }
+
+    var leitor = { id: uid(), papel: 'leitor', nome: nome, email: email, senha: senha, numero: proximoNumeroLeitor() };
+    db.usuarios.push(leitor);
+    db.pontuacoes.push({ id: uid(), leitor_id: leitor.id, leitor_nome: leitor.nome, pontos: 0 });
+    db.sessao = leitor.id;
+    salvar();
+    irPara('leitor', 'catalogo');
+  };
+
+  /* ---------- telas públicas ---------- */
+  function telaInicio() {
+    return '<div class="hero">' +
+      '<div class="logo">&#128218;</div>' +
+      '<h1>BiblioGestor</h1>' +
+      '<p class="sub">' + esc(NOME_BIB) + '</p>' +
+      '<p class="sub" style="max-width:300px">Acervo, empréstimos e pontos de leitura em um só lugar.</p>' +
+      '<div class="col">' +
+      '<button class="btn" onclick="A.abrirLogin(\'biblio\')">Sou bibliotecário</button>' +
+      '<button class="btn sec" onclick="A.abrirLogin(\'leitor\')">Sou leitor</button>' +
+      '</div>' +
+      '<button class="link" onclick="A.abrirCadastro()">Criar cadastro de leitor</button>' +
+      '<p class="rodape">Versão de arquivo único: os dados ficam salvos neste navegador.</p>' +
+      '</div>';
+  }
+
+  function telaLogin() {
+    var biblio = rota.login === 'biblio';
+    var criar = biblio && semBibliotecario();
+    var titulo = criar ? 'Criar acesso do bibliotecário' : (biblio ? 'Entrar como bibliotecário' : 'Entrar como leitor');
+    var desc = criar
+      ? 'É o primeiro acesso. Defina o e-mail e a senha do responsável pela biblioteca.'
+      : (biblio ? 'Use a conta de administração da biblioteca.' : 'Use o e-mail e a senha do seu cadastro.');
+
+    return '<div class="tela">' +
+      '<button class="voltar" onclick="A.voltarInicio()">&larr; Voltar</button>' +
+      '<div class="card">' +
+      '<div style="text-align:center;margin-bottom:14px">' +
+      '<div class="logo" style="margin:0 auto 10px;width:60px;height:60px;border-radius:18px;font-size:1.7rem">' + (biblio ? '&#128218;' : '&#128214;') + '</div>' +
+      '<h2 style="font-size:1.1rem">' + titulo + '</h2>' +
+      '<p class="sub" style="margin-top:4px">' + desc + '</p>' +
+      '</div>' +
+      '<form class="form" onsubmit="A.entrar(event)">' +
+      (criar ? '<label>Nome<input class="input" name="nome" required autocomplete="name"></label>' : '') +
+      '<label>E-mail<input class="input" name="email" type="email" required autocomplete="email"></label>' +
+      '<label>Senha<input class="input" name="senha" type="password" required autocomplete="current-password"></label>' +
+      '<p class="erro" id="erro"></p>' +
+      '<button class="btn" type="submit">' + (criar ? 'Criar acesso' : 'Entrar') + '</button>' +
+      '</form>' +
+      (biblio ? '<div style="text-align:center;margin-top:10px"><button class="link" onclick="A.abrirLogin(\'leitor\')">Sou leitor</button></div>'
+              : '<div style="text-align:center;margin-top:10px"><button class="link" onclick="A.abrirCadastro()">Criar meu cadastro</button></div>') +
+      '</div></div>';
+  }
+
+  function telaCadastro() {
+    return '<div class="tela">' +
+      '<button class="voltar" onclick="A.voltarInicio()">&larr; Voltar</button>' +
+      '<div class="card">' +
+      '<div style="text-align:center;margin-bottom:14px">' +
+      '<h2 style="font-size:1.1rem">Cadastro de leitor</h2>' +
+      '<p class="sub" style="margin-top:4px">Seu número de leitor é gerado automaticamente.</p>' +
+      '</div>' +
+      '<form class="form" onsubmit="A.cadastrarLeitor(event)">' +
+      '<label>Nome completo<input class="input" name="nome" required autocomplete="name"></label>' +
+      '<label>E-mail<input class="input" name="email" type="email" required autocomplete="email"></label>' +
+      '<label>Senha<input class="input" name="senha" type="password" required autocomplete="new-password"></label>' +
+      '<label>Confirmar senha<input class="input" name="confirma" type="password" required autocomplete="new-password"></label>' +
+      '<p class="erro" id="erro"></p>' +
+      '<button class="btn" type="submit">Criar cadastro</button>' +
+      '</form>' +
+      '<div style="text-align:center;margin-top:10px"><button class="link" onclick="A.abrirLogin(\'leitor\')">Já tenho conta</button></div>' +
+      '</div></div>';
+  }
+    /* ---------- componentes ---------- */
+  function cabecalho(u, papel) {
+    return '<header class="topo">' +
+      '<div><p class="marca">' + esc(NOME_BIB) + '</p>' +
+      '<p class="sub">' + (papel === 'bibliotecario' ? 'Painel do bibliotecário' : 'Leitor nº ' + u.numero + ' · ' + esc(u.nome)) + '</p></div>' +
+      '<button class="btn mini sec" onclick="A.sair()">Sair</button>' +
+      '</header>';
+  }
+
+  function chips(itens, atual) {
+    return '<nav class="chipnav">' + itens.map(function (i) {
+      var badge = i[2] ? '<span class="badge">' + i[2] + '</span>' : '';
+      return '<button class="chip ' + (i[0] === atual ? 'on' : '') + '" onclick="A.irAba(\'' + i[0] + '\')">' + i[1] + badge + '</button>';
+    }).join('') + '</nav>';
+  }
+
+  function vazio(titulo, texto) {
+    return '<div class="vazio"><b>' + esc(titulo) + '</b>' + (texto ? '<br>' + esc(texto) : '') + '</div>';
+  }
+
+  function capaHTML(livro, classe) {
+    if (livro.capa_url) {
+      return '<img class="capa ' + (classe || '') + '" src="' + esc(livro.capa_url) + '" alt="Capa de ' + esc(livro.nome) + '" onerror="this.style.display=\'none\'">';
+    }
+    return '<div class="capa ' + (classe || '') + '">' + esc(livro.nome) + '</div>';
+  }
+
+  function cartaoEmprestimo(e, podeDevolver) {
+    var atraso = e.status === 'ativo' ? diasAtraso(e.data_prevista) : 0;
+    var tag = e.status === 'devolvido'
+      ? '<span class="tag verde">Devolvido</span>'
+      : (atraso > 0 ? '<span class="tag vermelho">' + atraso + ' dia' + (atraso > 1 ? 's' : '') + ' de atraso</span>'
+                     : '<span class="tag azul">Em andamento</span>');
+    return '<div class="item">' +
+      '<div class="item-topo">' +
+      '<div><p class="titulo">' + esc(e.livro_nome) + '</p>' +
+      '<p class="sub">Nº ' + e.livro_numero + ' · ' + esc(e.leitor_nome) + ' (#' + e.leitor_numero + ')</p></div>' + tag +
+      '</div>' +
+      '<div class="datas"><span>Empréstimo: <b>' + fmtData(e.data_emprestimo) + '</b></span>' +
+      '<span>Previsto: <b>' + fmtData(e.data_prevista) + '</b></span>' +
+      (e.data_devolucao ? '<span>Devolvido: <b>' + fmtData(e.data_devolucao) + '</b></span>' : '') +
+      '</div>' +
+      (podeDevolver && e.status === 'ativo'
+        ? '<div style="margin-top:10px"><button class="btn mini" onclick="A.devolver(\'' + e.id + '\')">Registrar devolução</button></div>'
+        : '') +
+      '</div>';
+  }
+
+  function mediaLivro(livroId) {
+    var notas = db.avaliacoes.filter(function (a) { return a.livro_id === livroId; });
+    if (!notas.length) return null;
+    var soma = notas.reduce(function (s, a) { return s + Number(a.nota || 0); }, 0);
+    return { media: Math.round((soma / notas.length) * 10) / 10, total: notas.length };
+  }
+
+  /* ---------- painel do bibliotecário ---------- */
+  function listaLivros(q) {
+    var termo = String(q || '').trim().toLowerCase();
+    var lista = db.livros.slice().sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); })
+      .filter(function (l) {
+        if (!termo) return true;
+        return String(l.nome).toLowerCase().indexOf(termo) >= 0 ||
+          String(l.autor).toLowerCase().indexOf(termo) >= 0 ||
+          String(l.numero).indexOf(termo) >= 0;
+      });
+    if (!lista.length) return vazio('Nenhum livro encontrado', db.livros.length ? 'Tente outro termo.' : 'Cadastre o primeiro livro acima.');
+    return lista.map(function (l) {
+      var disp = l.quantidade_disponivel > 0;
+      return '<div class="item"><div class="item-topo">' +
+        '<div><p class="titulo">' + esc(l.nome) + '</p>' +
+        '<p class="sub">Nº ' + l.numero + ' · ' + esc(l.autor) + '</p></div>' +
+        '<span class="tag ' + (disp ? 'verde' : 'vermelho') + '">' + (disp ? l.quantidade_disponivel + ' de ' + l.quantidade_total + ' disponíveis' : 'Esgotado') + '</span>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  A.buscarAcervo = function (v) {
+    filtros.acervo = v;
+    document.getElementById('lista-acervo').innerHTML = listaLivros(v);
+  };
+
+  A.novoLivro = function (ev) {
+    ev.preventDefault();
+    var f = ev.target;
+    var numero = Number(f.numero.value);
+    var total = Number(f.total.value);
+    var nome = String(f.nome.value || '').trim();
+    var autor = String(f.autor.value || '').trim();
+    if (!numero || numero < 1 || !total || total < 1 || !nome || !autor) { aviso('Preencha número, nome, autor e exemplares.'); return; }
+    if (db.livros.some(function (l) { return Number(l.numero) === numero; })) { aviso('Já existe um livro com o número ' + numero + '.'); return; }
+    db.livros.push({
+      id: uid(), numero: numero, nome: nome, autor: autor,
+      quantidade_total: total, quantidade_disponivel: total,
+      resumo: String(f.resumo.value || '').trim(), capa_url: String(f.capa.value || '').trim()
+    });
+    salvar();
+    render();
+    aviso('Livro cadastrado.');
+  };
+
+  A.registrarEmprestimo = function (ev) {
+    ev.preventDefault();
+    var f = ev.target;
+    var leitorId = f.leitor.value;
+    var livroId = f.livro.value;
+    var prevista = f.prevista.value;
+    if (!leitorId || !livroId) { aviso('Escolha o leitor e o livro.'); return; }
+    if (!prevista || prevista < hojeISO()) { aviso('Informe uma data prevista válida.'); return; }
+    var leitor = db.usuarios.filter(function (u) { return u.id === leitorId; })[0];
+    var livro = db.livros.filter(function (l) { return l.id === livroId; })[0];
+    if (!leitor || !livro) { aviso('Registro não encontrado.'); return; }
+    if (livro.quantidade_disponivel <= 0) { aviso('Não há exemplares disponíveis deste livro.'); return; }
+
+    db.emprestimos.push({
+      id: uid(),
+      livro_id: livro.id, livro_numero: livro.numero, livro_nome: livro.nome,
+      leitor_id: leitor.id, leitor_numero: leitor.numero, leitor_nome: leitor.nome, leitor_email: leitor.email,
+      data_emprestimo: hojeISO(), data_prevista: prevista, data_devolucao: '',
+      status: 'ativo', criado: new Date().toISOString()
+    });
+    livro.quantidade_disponivel = livro.quantidade_disponivel - 1;
+    salvar();
+    render();
+    aviso('Empréstimo registrado.');
+  };
+
+  A.devolver = function (id) {
+    var e = db.emprestimos.filter(function (x) { return x.id === id; })[0];
+    if (!e || e.status !== 'ativo') return;
+    e.status = 'devolvido';
+    e.data_devolucao = hojeISO();
+    var livro = db.livros.filter(function (l) { return l.id === e.livro_id; })[0];
+    if (livro) livro.quantidade_disponivel = Math.min(livro.quantidade_total, livro.quantidade_disponivel + 1);
+    salvar();
+    render();
+    aviso('Devolução registrada.');
+  };
+
+  function secAcervo() {
+    return '<div class="card"><h2>Novo livro</h2>' +
+      '<form class="form" onsubmit="A.novoLivro(event)">' +
+      '<div class="grid2">' +
+      '<label>Número<input class="input" name="numero" type="number" min="1" value="' + proximoNumeroLivro() + '" required></label>' +
+      '<label>Exemplares<input class="input" name="total" type="number" min="1" value="1" required></label>' +
+      '</div>' +
+      '<label>Nome do livro<input class="input" name="nome" required></label>' +
+      '<label>Autor<input class="input" name="autor" required></label>' +
+      '<label>Resumo da história<textarea class="input" name="resumo" rows="3"></textarea></label>' +
+      '<label>URL da capa (opcional)<input class="input" name="capa" placeholder="https://..."></label>' +
+      '<button class="btn" type="submit">Cadastrar livro</button>' +
+      '</form></div>' +
+      '<div class="card"><div class="row-between"><h2>Acervo</h2><span class="contagem">' + db.livros.length + ' títulos</span></div>' +
+      '<input class="input" placeholder="Buscar por nome, autor ou número" value="' + esc(filtros.acervo) + '" oninput="A.buscarAcervo(this.value)">' +
+      '<div id="lista-acervo">' + listaLivros(filtros.acervo) + '</div></div>';
+  }
+
+  function secEmprestimo() {
+    var leitoresDisponiveis = leitores();
+    var disponiveis = db.livros.filter(function (l) { return l.quantidade_disponivel > 0; });
+    if (!leitoresDisponiveis.length || !disponiveis.length) {
+      var falta = !leitoresDisponiveis.length ? 'Cadastre um leitor para emprestar.' : 'Nenhum livro com exemplar disponível.';
+      return '<div class="card"><h2>Novo empréstimo</h2>' + vazio('Empréstimo indisponível', falta) + '</div>';
+    }
+    return '<div class="card"><h2>Novo empréstimo</h2>' +
+      '<form class="form" onsubmit="A.registrarEmprestimo(event)">' +
+      '<label>Leitor<select class="input" name="leitor" required>' +
+      leitoresDisponiveis.map(function (u) {
+        return '<option value="' + u.id + '">' + u.numero + ' — ' + esc(u.nome) + '</option>';
+      }).join('') + '</select></label>' +
+      '<label>Livro<select class="input" name="livro" required>' +
+      disponiveis.sort(function (a, b) { return a.numero - b.numero; }).map(function (l) {
+        return '<option value="' + l.id + '">' + l.numero + ' — ' + esc(l.nome) + ' (' + l.quantidade_disponivel + ' disp.)</option>';
+      }).join('') + '</select></label>' +
+      '<label>Data prevista de devolução<input class="input" name="prevista" type="date" value="' + somaDias(hojeISO(), 7) + '" required></label>' +
+      '<button class="btn" type="submit">Registrar empréstimo</button>' +
+      '</form></div>';
+  }
+
+  function secAtivos() {
+    var lista = ativos();
+    return '<div class="card"><div class="row-between"><h2>Empréstimos ativos</h2><span class="contagem">' + lista.length + '</span></div>' +
+      (lista.length ? lista.map(function (e) { return cartaoEmprestimo(e, true); }).join('')
+                    : vazio('Nenhum empréstimo ativo', 'Todos os livros estão no acervo.')) +
+      '</div>';
+  }
+
+  function secAtrasados() {
+    var lista = atrasados();
+    return '<div class="card"><div class="row-between"><h2>Atrasados</h2>' +
+      (lista.length ? '<span class="tag vermelho">' + lista.length + ' em atraso</span>' : '') + '</div>' +
+      (lista.length ? lista.map(function (e) { return cartaoEmprestimo(e, true); }).join('')
+                    : vazio('Nenhum atraso', 'Todos os leitores estão em dia.')) +
+      '</div>';
+  }
+
+  function secLeitores() {
+    if (rota.leitor) return detalheLeitor(rota.leitor);
+    if (!leitores().length) {
+      return '<div class="card"><h2>Leitores</h2>' + vazio('Nenhum leitor cadastrado', 'Os leitores se cadastram pela tela inicial.') + '</div>';
+    }
+    return '<div class="card"><div class="row-between"><h2>Leitores</h2><span class="contagem">' + leitores().length + '</span></div>' +
+      leitores().map(function (u) {
+        var emPosse = db.emprestimos.filter(function (e) { return e.leitor_id === u.id && e.status === 'ativo'; }).length;
+        return '<button class="linha" onclick="A.abrirLeitor(\'' + u.id + '\')">' +
+          '<span class="avatar">' + esc(iniciais(u.nome)) + '</span>' +
+          '<span style="flex:1;min-width:0"><b style="font-size:.9rem">' + esc(u.nome) + '</b>' +
+          '<span class="sub" style="display:block">#' + u.numero + ' · ' + esc(u.email) + '</span></span>' +
+          '<span style="text-align:right"><span class="tag azul">' + emPosse + ' em posse</span>' +
+          '<span class="sub" style="display:block;margin-top:4px">' + pontosDe(u.id) + ' pts</span></span>' +
+          '</button>';
+      }).join('') + '</div>';
+  }
+
+  function detalheLeitor(id) {
+    var u = db.usuarios.filter(function (x) { return x.id === id; })[0];
+    if (!u) return '<div class="card">' + vazio('Leitor não encontrado') + '</div>';
+    var emprestimos = emprestimosDoLeitor(id);
+    var resumos = db.resumos.filter(function (r) { return r.leitor_id === id; });
+    var avaliacoes = db.avaliacoes.filter(function (a) { return a.leitor_id === id; });
+    return '<div class="card">' +
+      '<button class="voltar" onclick="A.voltar()">&larr; Leitores</button>' +
+      '<div style="text-align:center;margin:6px 0 14px">' +
+      '<span class="avatar" style="margin:0 auto 8px;width:52px;height:52px;border-radius:16px;font-size:1rem">' + esc(iniciais(u.nome)) + '</span>' +
+      '<h2>' + esc(u.nome) + '</h2><p class="sub">Leitor #' + u.numero + ' · ' + esc(u.email) + '</p></div>' +
+      '<div class="linha-info"><span>Pontos acumulados</span><b>' + pontosDe(id) + ' pts</b></div>' +
+      '<div class="linha-info"><span>Livros em posse</span><b>' + emprestimos.filter(function (e) { return e.status === 'ativo'; }).length + '</b></div>' +
+      '<div class="linha-info"><span>Empréstimos totais</span><b>' + emprestimos.length + '</b></div>' +
+      '<div class="linha-info"><span>Resumos enviados</span><b>' + resumos.length + '</b></div>' +
+      '<div class="linha-info"><span>Avaliações feitas</span><b>' + avaliacoes.length + '</b></div>' +
+      '</div>' +
+      '<div class="card"><h2>Histórico do leitor</h2>' +
+      (emprestimos.length ? emprestimos.map(function (e) { return cartaoEmprestimo(e, true); }).join('')
+                          : vazio('Nenhum empréstimo')) +
+      '</div>';
+  }
+
+  function listaHistorico() {
+    var lista = db.emprestimos.slice()
+      .filter(function (e) {
+        if (filtros.histLeitor && e.leitor_id !== filtros.histLeitor) return false;
+        if (filtros.histLivro && e.livro_id !== filtros.histLivro) return false;
+        if (filtros.histSit === 'ativo' && e.status !== 'ativo') return false;
+        if (filtros.histSit === 'atrasado' && !(e.status === 'ativo' && diasAtraso(e.data_prevista) > 0)) return false;
+        if (filtros.histSit === 'devolvido' && e.status !== 'devolvido') return false;
+        return true;
+      })
+      .sort(function (a, b) { return String(b.data_emprestimo).localeCompare(String(a.data_emprestimo)); });
+    if (!lista.length) return vazio('Nenhum empréstimo com esses filtros');
+    return lista.map(function (e) { return cartaoEmprestimo(e, false); }).join('');
+  }
+
+  A.setFiltro = function (campo, valor) {
+    filtros[campo] = valor;
+    document.getElementById('lista-historico').innerHTML = listaHistorico();
+  };
+
+  function secHistorico() {
+    var leitoresOp = '<option value="">Todos os leitores</option>' + leitores().map(function (u) {
+      return '<option value="' + u.id + '"' + (filtros.histLeitor === u.id ? ' selected' : '') + '>' + u.numero + ' — ' + esc(u.nome) + '</option>';
+    }).join('');
+    var livrosOp = '<option value="">Todos os livros</option>' + db.livros.slice().sort(function (a, b) { return a.numero - b.numero; }).map(function (l) {
+      return '<option value="' + l.id + '"' + (filtros.histLivro === l.id ? ' selected' : '') + '>' + l.numero + ' — ' + esc(l.nome) + '</option>';
+    }).join('');
+    var sitOp = [['', 'Todas as situações'], ['ativo', 'Ativos'], ['atrasado', 'Atrasados'], ['devolvido', 'Devolvidos']].map(function (s) {
+      return '<option value="' + s[0] + '"' + (filtros.histSit === s[0] ? ' selected' : '') + '>' + s[1] + '</option>';
+    }).join('');
+    return '<div class="card"><h2>Histórico de empréstimos</h2>' +
+      '<div class="form" style="margin-bottom:6px">' +
+      '<label>Leitor<select class="input" onchange="A.setFiltro(\'histLeitor\', this.value)">' + leitoresOp + '</select></label>' +
+      '<label>Livro<select class="input" onchange="A.setFiltro(\'histLivro\', this.value)">' + livrosOp + '</select></label>' +
+      '<label>Situação<select class="input" onchange="A.setFiltro(\'histSit\', this.value)">' + sitOp + '</select></label>' +
+      '</div><div id="lista-historico">' + listaHistorico() + '</div></div>';
+  }
+
+  A.aprovarResumo = function (id) {
+    var r = db.resumos.filter(function (x) { return x.id === id; })[0];
+    if (!r || r.status !== 'pendente') return;
+    r.status = 'aprovado';
+    r.pontos = PONTOS_POR_RESUMO;
+    creditar(r.leitor_id, PONTOS_POR_RESUMO);
+    salvar();
+    render();
+    aviso('Resumo aprovado: +' + PONTOS_POR_RESUMO + ' pontos para ' + r.leitor_nome + '.');
+  };
+
+  A.recusarResumo = function (id) {
+    var r = db.resumos.filter(function (x) { return x.id === id; })[0];
+    if (!r || r.status !== 'pendente') return;
+    r.status = 'recusado';
+    r.pontos = 0;
+    salvar();
+    render();
+    aviso('Resumo recusado.');
+  };
+
+  function secResumos() {
+    var fila = pendentes();
+    var avaliados = db.resumos.filter(function (r) { return r.status !== 'pendente'; })
+      .sort(function (a, b) { return String(b.criado).localeCompare(String(a.criado)); }).slice(0, 20);
+
+    var pendHTML = fila.length ? fila.map(function (r) {
+      return '<div class="item"><div class="item-topo">' +
+        '<div><p class="titulo">' + esc(r.livro_nome) + '</p>' +
+        '<p class="sub">' + esc(r.leitor_nome) + ' (#' + r.leitor_numero + ') · ' + fmtData(r.criado) + '</p></div>' +
+        '<span class="tag amarelo">Pendente</span></div>' +
+        '<p style="margin-top:9px;font-size:.87rem;color:#3d5b6b;white-space:pre-wrap">' + esc(r.texto) + '</p>' +
+        '<div style="display:flex;gap:8px;margin-top:11px">' +
+        '<button class="btn mini verde" onclick="A.aprovarResumo(\'' + r.id + '\')">Aprovar (+' + PONTOS_POR_RESUMO + ' pts)</button>' +
+        '<button class="btn mini vermelho" onclick="A.recusarResumo(\'' + r.id + '\')">Recusar</button>' +
+        '</div></div>';
+    }).join('') : vazio('Nenhum resumo pendente');
+
+    var avalHTML = avaliados.length ? avaliados.map(function (r) {
+      return '<div class="item"><div class="item-topo">' +
+        '<div><p class="titulo">' + esc(r.livro_nome) + '</p>' +
+        '<p class="sub">' + esc(r.leitor_nome) + ' (#' + r.leitor_numero + ')</p></div>' +
+        '<span class="tag ' + (r.status === 'aprovado' ? 'verde' : 'vermelho') + '">' +
+        (r.status === 'aprovado' ? '+' + r.pontos + ' pts' : 'Recusado') + '</span></div></div>';
+    }).join('') : vazio('Nenhum resumo avaliado ainda');
+
+    return '<div class="card"><div class="row-between"><h2>Resumos para aprovar</h2>' +
+      (fila.length ? '<span class="tag amarelo">' + fila.length + '</span>' : '') + '</div>' + pendHTML + '</div>' +
+      '<div class="card"><h2>Avaliados recentemente</h2>' + avalHTML + '</div>';
+  }
+
+  A.criarMeta = function (ev) {
+    ev.preventDefault();
+    var f = ev.target;
+    var pontos = Number(f.pontos.value);
+    var recompensa = String(f.recompensa.value || '').trim();
+    if (!pontos || pontos < 1 || !recompensa) { aviso('Informe os pontos e o prêmio.'); return; }
+    db.metas.push({ id: uid(), pontos: pontos, recompensa: recompensa });
+    db.metas.sort(function (a, b) { return a.pontos - b.pontos; });
+    salvar();
+    render();
+    aviso('Meta criada.');
+  };
+
+  A.removerMeta = function (id) {
+    db.metas = db.metas.filter(function (m) { return m.id !== id; });
+    salvar();
+    render();
+  };
+
+  A.entregarPremio = function (leitorId, metaId) {
+    var u = db.usuarios.filter(function (x) { return x.id === leitorId; })[0];
+    var m = db.metas.filter(function (x) { return x.id === metaId; })[0];
+    if (!u || !m) return;
+    db.entregas.push({
+      id: uid(), leitor_id: u.id, leitor_numero: u.numero, leitor_nome: u.nome,
+      meta_id: m.id, meta_pontos: m.pontos, recompensa: m.recompensa, data_entrega: hojeISO()
+    });
+    salvar();
+    render();
+    aviso('Prêmio entregue a ' + u.nome + '.');
+  };
+
+  function secPremios() {
+    var metas = db.metas.slice().sort(function (a, b) { return a.pontos - b.pontos; });
+    var metasHTML = metas.length ? metas.map(function (m) {
+      return '<div class="item"><div class="item-topo"><div><p class="titulo">' + esc(m.recompensa) + '</p>' +
+        '<p class="sub">A partir de ' + m.pontos + ' pontos</p></div>' +
+        '<button class="btn mini sec" onclick="A.removerMeta(\'' + m.id + '\')">Remover</button></div></div>';
+    }).join('') : vazio('Nenhuma meta cadastrada', 'Defina os prêmios por pontuação.');
+
+    var premiosPendentes = [];
+    leitores().forEach(function (u) {
+      var pts = pontosDe(u.id);
+      metas.forEach(function (m) {
+        if (pts < m.pontos) return;
+        var entregue = db.entregas.some(function (e) { return e.leitor_id === u.id && e.meta_id === m.id; });
+        if (entregue) return;
+        premiosPendentes.push({ leitor: u, meta: m, pts: pts });
+      });
+    });
+    var pendHTML = premiosPendentes.length ? premiosPendentes.map(function (p) {
+      return '<div class="item"><div class="item-topo">' +
+        '<div><p class="titulo">' + esc(p.meta.recompensa) + '</p>' +
+        '<p class="sub">' + esc(p.leitor.nome) + ' (#' + p.leitor.numero + ') · ' + p.pts + ' pts</p></div>' +
+        '<button class="btn mini verde" onclick="A.entregarPremio(\'' + p.leitor.id + '\',\'' + p.meta.id + '\')">Entregar</button>' +
+        '</div></div>';
+    }).join('') : vazio('Nenhum prêmio a entregar');
+
+    var entregas = db.entregas.slice().sort(function (a, b) { return String(b.data_entrega).localeCompare(String(a.data_entrega)); }).slice(0, 15);
+    var entregasHTML = entregas.length ? entregas.map(function (e) {
+      return '<div class="item"><div class="item-topo">' +
+        '<div><p class="titulo">' + esc(e.recompensa) + '</p>' +
+        '<p class="sub">' + esc(e.leitor_nome) + ' (#' + e.leitor_numero + ') · ' + fmtData(e.data_entrega) + '</p></div>' +
+        '<span class="tag verde">Entregue</span></div></div>';
+    }).join('') : vazio('Nenhuma entrega registrada');
+
+    return '<div class="card"><h2>Nova meta</h2>' +
+      '<form class="form" onsubmit="A.criarMeta(event)">' +
+      '<div class="grid2">' +
+      '<label>Pontos necessários<input class="input" name="pontos" type="number" min="1" value="100" required></label>' +
+      '<label>Recompensa<input class="input" name="recompensa" placeholder="Ex.: marcador" required></label>' +
+      '</div><button class="btn" type="submit">Criar meta</button></form></div>' +
+      '<div class="card"><h2>Metas</h2>' + metasHTML + '</div>' +
+      '<div class="card"><h2>Prêmios a entregar</h2>' + pendHTML + '</div>' +
+      '<div class="card"><h2>Entregas recentes</h2>' + entregasHTML + '</div>';
+  }
+
+  function telaPainel() {
+    var u = usuarioAtual();
+    var abas = [
+      ['acervo', 'Acervo'], ['emprestimo', 'Empréstimo'], ['ativos', 'Ativos', ativos().length],
+      ['atrasados', 'Atrasados', atrasados().length], ['leitores', 'Leitores'],
+      ['historico', 'Histórico'], ['resumos', 'Resumos', pendentes().length], ['premios', 'Prêmios']
+    ];
+    var conteudo = '';
+    if (rota.aba === 'acervo') conteudo = secAcervo();
+    else if (rota.aba === 'emprestimo') conteudo = secEmprestimo();
+    else if (rota.aba === 'ativos') conteudo = secAtivos();
+    else if (rota.aba === 'atrasados') conteudo = secAtrasados();
+    else if (rota.aba === 'leitores') conteudo = secLeitores();
+    else if (rota.aba === 'historico') conteudo = secHistorico();
+    else if (rota.aba === 'resumos') conteudo = secResumos();
+    else if (rota.aba === 'premios') conteudo = secPremios();
+    return cabecalho(u, 'bibliotecario') + chips(abas, rota.aba) + conteudo;
+  }
+
+  /* ---------- página do leitor ---------- */
+  function livrosEmprestadosPeloLeitor(id) {
+    var ids = {};
+    db.emprestimos.forEach(function (e) { if (e.leitor_id === id) ids[e.livro_id] = true; });
+    return Object.keys(ids);
+  }
+
+  function listaCatalogo(u) {
+    var termo = String(filtros.catalogo || '').trim().toLowerCase();
+    var lista = db.livros.slice().sort(function (a, b) { return a.numero - b.numero; }).filter(function (l) {
+      if (filtros.disponiveis && l.quantidade_disponivel <= 0) return false;
+      if (!termo) return true;
+      return String(l.nome).toLowerCase().indexOf(termo) >= 0 ||
+        String(l.autor).toLowerCase().indexOf(termo) >= 0 ||
+        String(l.numero).indexOf(termo) >= 0;
+    });
+    if (!lista.length) return vazio('Nenhum livro encontrado', 'Tente outro termo ou desative o filtro de disponíveis.');
+    return '<div class="grade">' + lista.map(function (l) {
+      return '<button class="livro" onclick="A.abrirLivro(\'' + l.id + '\')">' +
+        capaHTML(l) +
+        '<span style="font-size:.84rem;font-weight:650;line-height:1.25">' + esc(l.nome) + '</span>' +
+        '<span class="sub" style="font-size:.75rem">' + esc(l.autor) + '</span>' +
+        '<span class="tag ' + (l.quantidade_disponivel > 0 ? 'verde' : 'vermelho') + '" style="align-self:flex-start">' +
+        (l.quantidade_disponivel > 0 ? 'Disponível' : 'Esgotado') + '</span>' +
+        '</button>';
+    }).join('') + '</div>';
+  }
+
+  A.buscarCatalogo = function (v) {
+    filtros.catalogo = v;
+    document.getElementById('lista-catalogo').innerHTML = listaCatalogo(usuarioAtual());
+  };
+  A.toggleDisponiveis = function (marcado) {
+    filtros.disponiveis = !!marcado;
+    document.getElementById('lista-catalogo').innerHTML = listaCatalogo(usuarioAtual());
+  };
+
+  function secCatalogo() {
+    return '<div class="card">' +
+      '<input class="input" placeholder="Buscar por nome, autor ou número" value="' + esc(filtros.catalogo) + '" oninput="A.buscarCatalogo(this.value)">' +
+      '<label style="flex-direction:row;align-items:center;gap:8px;margin-top:10px;font-weight:600">' +
+      '<input type="checkbox" ' + (filtros.disponiveis ? 'checked' : '') + ' onchange="A.toggleDisponiveis(this.checked)"> Somente disponíveis</label>' +
+      '<div id="lista-catalogo" style="margin-top:6px">' + listaCatalogo(usuarioAtual()) + '</div></div>';
+  }
+   function secMeusLivros(u) {
+    var meus = emprestimosDoLeitor(u.id);
+    var emMaos = meus.filter(function (e) { return e.status === 'ativo'; });
+    var anteriores = meus.filter(function (e) { return e.status === 'devolvido'; });
+    return '<div class="card"><div class="row-between"><h2>Em posse</h2><span class="contagem">' + emMaos.length + '</span></div>' +
+      (emMaos.length ? emMaos.map(function (e) {
+        var atraso = diasAtraso(e.data_prevista);
+        return '<div class="item"><div class="item-topo"><div>' +
+          '<p class="titulo">' + esc(e.livro_nome) + '</p>' +
+          '<p class="sub">Nº ' + e.livro_numero + '</p></div>' +
+          '<span class="tag ' + (atraso > 0 ? 'vermelho' : 'azul') + '">' +
+          (atraso > 0 ? atraso + ' dia' + (atraso > 1 ? 's' : '') + ' de atraso' : 'Em dia') + '</span></div>' +
+          '<div class="datas"><span>Retirado: <b>' + fmtData(e.data_emprestimo) + '</b></span>' +
+          '<span>Devolver até: <b>' + fmtData(e.data_prevista) + '</b></span></div>' +
+          (atraso > 0 ? '<p class="sub" style="margin-top:8px;color:var(--vermelho)">Procure a biblioteca para devolver.</p>' : '') +
+          '</div>';
+      }).join('') : vazio('Nenhum livro em posse', 'Os empréstimos são registrados pelo bibliotecário.')) +
+      '</div>' +
+      '<div class="card"><h2>Já devolvidos</h2>' +
+      (anteriores.length ? anteriores.map(function (e) {
+        return '<div class="item"><div class="item-topo"><div>' +
+          '<p class="titulo">' + esc(e.livro_nome) + '</p>' +
+          '<p class="sub">Devolvido em ' + fmtData(e.data_devolucao) + '</p></div>' +
+          '<span class="tag verde">Devolvido</span></div></div>';
+      }).join('') : vazio('Nenhum empréstimo encerrado')) +
+      '</div>';
+  }
+
+  A.enviarResumo = function (ev) {
+    ev.preventDefault();
+    var u = usuarioAtual();
+    var f = ev.target;
+    var livroId = f.livro.value;
+    var texto = String(f.texto.value || '').trim();
+    if (!livroId) { aviso('Escolha um livro.'); return; }
+    if (texto.length < 20) { aviso('Escreva um resumo com pelo menos 20 caracteres.'); return; }
+    var livro = db.livros.filter(function (l) { return l.id === livroId; })[0];
+    if (!livro) return;
+    db.resumos.push({
+      id: uid(), livro_id: livro.id, livro_numero: livro.numero, livro_nome: livro.nome,
+      leitor_id: u.id, leitor_numero: u.numero, leitor_nome: u.nome,
+      texto: texto, status: 'pendente', pontos: 0, criado: new Date().toISOString()
+    });
+    salvar();
+    render();
+    aviso('Resumo enviado para aprovação.');
+  };
+
+  function secResumosLeitor(u) {
+    var livrosLidos = livrosEmprestadosPeloLeitor(u.id).map(function (id) {
+      return db.livros.filter(function (l) { return l.id === id; })[0];
+    }).filter(Boolean);
+
+    var opcoes = livrosLidos.length
+      ? '<select class="input" name="livro" required>' + livrosLidos.map(function (l) {
+          return '<option value="' + l.id + '">' + l.numero + ' — ' + esc(l.nome) + '</option>';
+        }).join('') + '</select>'
+      : '<p class="sub">Você poderá enviar resumos depois do primeiro empréstimo.</p>';
+
+    var meus = db.resumos.filter(function (r) { return r.leitor_id === u.id; })
+      .sort(function (a, b) { return String(b.criado).localeCompare(String(a.criado)); });
+
+    var lista = meus.length ? meus.map(function (r) {
+      var tag = r.status === 'aprovado' ? '<span class="tag verde">+' + r.pontos + ' pts</span>'
+        : r.status === 'recusado' ? '<span class="tag vermelho">Recusado</span>'
+        : '<span class="tag amarelo">Em análise</span>';
+      return '<div class="item"><div class="item-topo"><div>' +
+        '<p class="titulo">' + esc(r.livro_nome) + '</p>' +
+        '<p class="sub">' + fmtData(r.criado) + '</p></div>' + tag + '</div>' +
+        '<p style="margin-top:8px;font-size:.85rem;color:#3d5b6b;white-space:pre-wrap">' + esc(r.texto) + '</p></div>';
+    }).join('') : vazio('Nenhum resumo enviado');
+
+    return '<div class="card"><h2>Novo resumo</h2>' +
+      '<form class="form" onsubmit="A.enviarResumo(event)">' +
+      '<label>Livro' + opcoes + '</label>' +
+      '<label>Seu resumo<textarea class="input" name="texto" rows="5" placeholder="Escreva com suas palavras o que você leu..." required></textarea></label>' +
+      '<p class="sub">Cada resumo aprovado vale ' + PONTOS_POR_RESUMO + ' pontos.</p>' +
+      (livrosLidos.length ? '<button class="btn" type="submit">Enviar resumo</button>' : '') +
+      '</form></div>' +
+      '<div class="card"><h2>Meus resumos</h2>' + lista + '</div>';
+  }
+
+  function secMetas(u) {
+    var pts = pontosDe(u.id);
+    var metas = db.metas.slice().sort(function (a, b) { return a.pontos - b.pontos; });
+    var metasHTML = metas.length ? metas.map(function (m) {
+      var pct = Math.min(100, Math.round((pts / m.pontos) * 100));
+      var alcancado = pts >= m.pontos;
+      return '<div class="item">' +
+        '<div class="item-topo"><div><p class="titulo">' + esc(m.recompensa) + '</p>' +
+        '<p class="sub">' + m.pontos + ' pontos</p></div>' +
+        '<span class="tag ' + (alcancado ? 'verde' : 'azul') + '">' + (alcancado ? 'Alcançada' : pct + '%') + '</span></div>' +
+        '<div class="prog"><span style="width:' + pct + '%"></span></div>' +
+        (alcancado ? '<p class="sub">Fale com a biblioteca para receber o prêmio.</p>'
+                  : '<p class="sub">Faltam ' + (m.pontos - pts) + ' pontos.</p>') +
+        '</div>';
+    }).join('') : vazio('Nenhuma meta definida', 'As metas são criadas pela biblioteca.');
+
+    var entregas = db.entregas.filter(function (e) { return e.leitor_id === u.id; });
+    var entregasHTML = entregas.length ? entregas.map(function (e) {
+      return '<div class="item"><div class="item-topo"><div>' +
+        '<p class="titulo">' + esc(e.recompensa) + '</p>' +
+        '<p class="sub">' + fmtData(e.data_entrega) + '</p></div>' +
+        '<span class="tag verde">Recebido</span></div></div>';
+    }).join('') : vazio('Nenhum prêmio recebido ainda');
+
+    return '<div class="card" style="text-align:center">' +
+      '<p class="sub">Seus pontos</p>' +
+      '<p style="font-size:2.2rem;font-weight:800;letter-spacing:-.03em;color:var(--verde)">' + pts + '</p>' +
+      '</div>' +
+      '<div class="card"><h2>Metas</h2>' + metasHTML + '</div>' +
+      '<div class="card"><h2>Prêmios recebidos</h2>' + entregasHTML + '</div>';
+  }
+
+  function secRanking(u) {
+    var ranking = db.pontuacoes.slice().sort(function (a, b) { return (b.pontos || 0) - (a.pontos || 0); });
+    if (!ranking.length) return '<div class="card"><h2>Ranking</h2>' + vazio('Nenhum ponto registrado') + '</div>';
+    return '<div class="card"><h2>Ranking de leitores</h2>' +
+      ranking.map(function (p, i) {
+        var eu = p.leitor_id === u.id;
+        return '<div class="item" style="' + (eu ? 'border-color:var(--azul);background:var(--azul-claro)' : '') + '">' +
+          '<div class="item-topo"><div style="display:flex;align-items:center;gap:10px">' +
+          '<span class="avatar">' + (i + 1) + '</span>' +
+          '<span><b style="font-size:.9rem">' + esc(p.leitor_nome || 'Leitor') + '</b>' +
+          '<span class="sub" style="display:block">' + (eu ? 'Você' : 'Leitor') + '</span></span></div>' +
+          '<b style="color:var(--verde)">' + (p.pontos || 0) + ' pts</b></div></div>';
+      }).join('') + '</div>';
+  }
+
+  function detalheLivro(livroId, u) {
+    var l = db.livros.filter(function (x) { return x.id === livroId; })[0];
+    if (!l) return '<div class="card">' + vazio('Livro não encontrado') + '</div>';
+    var media = mediaLivro(l.id);
+    var avaliacoes = db.avaliacoes.filter(function (a) { return a.livro_id === l.id; })
+      .sort(function (a, b) { return String(b.criado).localeCompare(String(a.criado)); });
+    var jaPegou = db.emprestimos.some(function (e) { return e.livro_id === l.id && e.leitor_id === u.id; });
+    var jaAvaliou = db.avaliacoes.some(function (a) { return a.livro_id === l.id && a.leitor_id === u.id; });
+
+    var avaliacoesHTML = avaliacoes.length ? avaliacoes.map(function (a) {
+      return '<div class="item"><div class="item-topo"><div>' +
+        '<p class="titulo" style="font-size:.88rem">' + esc(a.leitor_nome) + '</p>' +
+        '<p class="sub">' + fmtData(a.criado) + '</p></div>' +
+        '<span class="estrelas">' + '★'.repeat(Number(a.nota)) + '☆'.repeat(5 - Number(a.nota)) + '</span></div>' +
+        (a.comentario ? '<p style="margin-top:7px;font-size:.85rem;color:#3d5b6b">' + esc(a.comentario) + '</p>' : '') +
+        '</div>';
+    }).join('') : vazio('Nenhuma avaliação ainda');
+
+    var formAvaliar = '';
+    if (jaPegou && !jaAvaliou) {
+      formAvaliar = '<div class="card"><h2>Avaliar este livro</h2>' +
+        '<form class="form" onsubmit="A.avaliar(event,\'' + l.id + '\')">' +
+        '<label>Nota<select class="input" name="nota" required>' +
+        '<option value="5">5 — Excelente</option><option value="4">4 — Muito bom</option>' +
+        '<option value="3">3 — Bom</option><option value="2">2 — Regular</option><option value="1">1 — Ruim</option>' +
+        '</select></label>' +
+        '<label>Comentário (opcional)<textarea class="input" name="comentario" rows="3"></textarea></label>' +
+        '<button class="btn" type="submit">Enviar avaliação</button></form></div>';
+    }
+
+    return '<div class="card">' +
+      '<button class="voltar" onclick="A.voltar()">&larr; Catálogo</button>' +
+      '<div style="display:flex;gap:14px;margin-top:6px">' +
+      '<div style="flex:0 0 110px">' + capaHTML(l) + '</div>' +
+      '<div style="min-width:0"><h2 style="font-size:1.05rem">' + esc(l.nome) + '</h2>' +
+      '<p class="sub" style="margin-top:3px">' + esc(l.autor) + ' · Nº ' + l.numero + '</p>' +
+      '<p class="sub" style="margin-top:7px">' + (media ? '<span class="estrelas">★</span> ' + media.media + ' (' + media.total + ')' : 'Sem avaliações') + '</p>' +
+      '<span class="tag ' + (l.quantidade_disponivel > 0 ? 'verde' : 'vermelho') + '" style="display:inline-block;margin-top:8px">' +
+      (l.quantidade_disponivel > 0 ? l.quantidade_disponivel + ' de ' + l.quantidade_total + ' disponíveis' : 'Esgotado') + '</span>' +
+      '</div></div>' +
+      (l.resumo ? '<p style="margin-top:14px;font-size:.89rem;color:#3d5b6b;white-space:pre-wrap">' + esc(l.resumo) + '</p>' : '') +
+      '</div>' + formAvaliar +
+      '<div class="card"><h2>Avaliações</h2>' + avaliacoesHTML + '</div>';
+  }
+
+  A.avaliar = function (ev, livroId) {
+    ev.preventDefault();
+    var u = usuarioAtual();
+    var f = ev.target;
+    var livro = db.livros.filter(function (l) { return l.id === livroId; })[0];
+    if (!livro) return;
+    if (!db.emprestimos.some(function (e) { return e.livro_id === livroId && e.leitor_id === u.id; })) {
+      aviso('Só é possível avaliar livros que você pegou emprestado.'); return;
+    }
+    db.avaliacoes.push({
+      id: uid(), livro_id: livro.id, livro_numero: livro.numero, livro_nome: livro.nome,
+      leitor_id: u.id, leitor_numero: u.numero, leitor_nome: u.nome,
+      nota: Number(f.nota.value), comentario: String(f.comentario.value || '').trim(),
+      criado: new Date().toISOString()
+    });
+    salvar();
+    render();
+    aviso('Avaliação registrada.');
+  };
+
+  function telaLeitor() {
+    var u = usuarioAtual();
+    if (rota.livro) return cabecalho(u, 'leitor') + detalheLivro(rota.livro, u);
+
+    var emMaos = db.emprestimos.filter(function (e) { return e.leitor_id === u.id && e.status === 'ativo'; }).length;
+    var abas = [
+      ['catalogo', 'Catálogo'], ['meus', 'Meus livros'], ['resumos', 'Resumos'],
+      ['metas', 'Metas'], ['ranking', 'Ranking']
+    ];
+    var conteudo = '';
+    if (rota.aba === 'catalogo') conteudo = secCatalogo();
+    else if (rota.aba === 'meus') conteudo = secMeusLivros(u);
+    else if (rota.aba === 'resumos') conteudo = secResumosLeitor(u);
+    else if (rota.aba === 'metas') conteudo = secMetas(u);
+    else if (rota.aba === 'ranking') conteudo = secRanking(u);
+
+    var cartao = '<div class="card" style="display:flex;align-items:center;gap:12px">' +
+      '<span class="avatar" style="width:44px;height:44px">' + esc(iniciais(u.nome)) + '</span>' +
+      '<div style="flex:1"><b style="font-size:.92rem">' + esc(u.nome) + '</b>' +
+      '<p class="sub">Leitor #' + u.numero + ' · ' + emMaos + ' livro' + (emMaos === 1 ? '' : 's') + ' em posse</p></div>' +
+      '<div style="text-align:right"><b style="color:var(--verde);font-size:1.05rem">' + pontosDe(u.id) + '</b>' +
+      '<p class="sub">pontos</p></div></div>';
+
+    return cabecalho(u, 'leitor') + chips(abas, rota.aba) + cartao + conteudo;
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    var u = usuarioAtual();
+
+    if ((rota.tela === 'painel' || rota.tela === 'leitor') && !u) rota.tela = 'inicio';
+    if (rota.tela === 'painel' && u && u.papel !== 'bibliotecario') rota.tela = 'leitor';
+    if (rota.tela === 'leitor' && u && u.papel !== 'leitor') rota.tela = 'painel';
+
+    var app = document.getElementById('app');
+    if (rota.tela === 'inicio') app.innerHTML = telaInicio();
+    else if (rota.tela === 'login') app.innerHTML = telaLogin();
+    else if (rota.tela === 'cadastro') app.innerHTML = telaCadastro();
+    else if (rota.tela === 'painel') app.innerHTML = telaPainel();
+    else app.innerHTML = telaLeitor();
+
+    if (ultimaTela !== rota.tela) {
+      window.scrollTo(0, 0);
+      ultimaTela = rota.tela;
+    }
+  }
+
+  /* ---------- início ---------- */
+  db = carregar();
+  var sessao = usuarioAtual();
+  if (sessao) {
+    rota.tela = sessao.papel === 'bibliotecario' ? 'painel' : 'leitor';
+    rota.aba = sessao.papel === 'bibliotecario' ? 'acervo' : 'catalogo';
+  }
+  render();
+})();
+</script>
+</body>
+</html>
