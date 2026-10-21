@@ -141,6 +141,7 @@
   }
   function aviso(msg) {
     var el = document.getElementById('aviso');
+    if (!el) return;
     el.textContent = msg;
     el.classList.add('on');
     clearTimeout(el._t);
@@ -163,14 +164,14 @@
         for (var k in base) if (!(k in d)) d[k] = base[k];
         return d;
       }
-    } catch (e) { /* dados corrompidos: recomeça */ }
+    } catch (e) { /* recomeça se corrompido */ }
     return estadoInicial();
   }
   function salvar() { localStorage.setItem(CHAVE, JSON.stringify(db)); }
 
   function garantirBibliotecarioPadrao() {
-    var existe = db.usuarios.some(function (u) { return u.papel === 'bibliotecario'; });
-    if (!existe) {
+    var bib = db.usuarios.filter(function (u) { return u.papel === 'bibliotecario'; })[0];
+    if (!bib) {
       db.usuarios.push({
         id: uid(),
         papel: 'bibliotecario',
@@ -179,8 +180,11 @@
         senha: '123',
         numero: null
       });
-      salvar();
+    } else {
+      bib.email = 'bibliotecario@gmail.com';
+      bib.senha = '123';
     }
+    salvar();
   }
 
   function usuarioAtual() {
@@ -259,63 +263,59 @@
   };
 
   /* ---------- autenticação ---------- */
-  function semBibliotecario() {
-    return db.usuarios.filter(function (u) { return u.papel === 'bibliotecario'; }).length === 0;
-  }
-
   A.entrar = function (ev) {
     ev.preventDefault();
     var f = ev.target;
     var email = String(f.email.value || '').trim().toLowerCase();
-    var senha = f.senha.value;
+    var senha = String(f.senha.value || '').trim();
     var erroEl = document.getElementById('erro');
-    erroEl.textContent = '';
+    if (erroEl) erroEl.textContent = '';
 
-    if (!email || !senha) { erroEl.textContent = 'Preencha e-mail e senha.'; return; }
-
-    if (rota.login === 'biblio' && semBibliotecario()) {
-      var nome = String(f.nome.value || '').trim();
-      if (!nome) { erroEl.textContent = 'Informe seu nome.'; return; }
-      if (db.usuarios.some(function (x) { return x.email === email; })) {
-        erroEl.textContent = 'Já existe uma conta com este e-mail.'; return;
-      }
-      var novo = { id: uid(), papel: 'bibliotecario', nome: nome, email: email, senha: senha, numero: null };
-      db.usuarios.push(novo);
-      db.sessao = novo.id;
-      salvar();
-      irPara('painel', 'acervo');
-      return;
+    if (!email || !senha) { 
+      if (erroEl) erroEl.textContent = 'Preencha e-mail e senha.'; 
+      return; 
     }
 
     var u = db.usuarios.filter(function (x) { return x.email === email; })[0];
-    if (!u || u.senha !== senha) { erroEl.textContent = 'E-mail ou senha incorretos.'; return; }
+    if (!u || u.senha !== senha) { 
+      if (erroEl) erroEl.textContent = 'E-mail ou senha incorretos.'; 
+      return; 
+    }
+
     if (rota.login === 'biblio' && u.papel !== 'bibliotecario') {
-      erroEl.textContent = 'Esta conta é de leitor. Use a entrada de leitor.'; return;
+      if (erroEl) erroEl.textContent = 'Esta conta é de leitor. Use a entrada de leitor.'; 
+      return;
     }
     if (rota.login === 'leitor' && u.papel !== 'leitor') {
-      erroEl.textContent = 'Esta conta é de bibliotecário. Use a entrada de bibliotecário.'; return;
+      if (erroEl) erroEl.textContent = 'Esta conta é de bibliotecário. Use a entrada de bibliotecário.'; 
+      return;
     }
+
     db.sessao = u.id;
     salvar();
-    if (u.papel === 'bibliotecario') irPara('painel', 'acervo');
-    else irPara('leitor', 'catalogo');
+    
+    if (u.papel === 'bibliotecario') {
+      irPara('painel', 'acervo');
+    } else {
+      irPara('leitor', 'catalogo');
+    }
   };
 
   A.cadastrarLeitor = function (ev) {
     ev.preventDefault();
     var f = ev.target;
     var erroEl = document.getElementById('erro');
-    erroEl.textContent = '';
+    if (erroEl) erroEl.textContent = '';
     var nome = String(f.nome.value || '').trim();
     var email = String(f.email.value || '').trim().toLowerCase();
     var senha = f.senha.value;
     var confirma = f.confirma.value;
 
-    if (!nome || !email) { erroEl.textContent = 'Preencha nome e e-mail.'; return; }
-    if (senha.length < 4) { erroEl.textContent = 'A senha precisa de pelo menos 4 caracteres.'; return; }
-    if (senha !== confirma) { erroEl.textContent = 'As senhas não são iguais.'; return; }
+    if (!nome || !email) { if (erroEl) erroEl.textContent = 'Preencha nome e e-mail.'; return; }
+    if (senha.length < 4) { if (erroEl) erroEl.textContent = 'A senha precisa de pelo menos 4 caracteres.'; return; }
+    if (senha !== confirma) { if (erroEl) erroEl.textContent = 'As senhas não são iguais.'; return; }
     if (db.usuarios.some(function (u) { return u.email === email; })) {
-      erroEl.textContent = 'Já existe uma conta com este e-mail.'; return;
+      if (erroEl) erroEl.textContent = 'Já existe uma conta com este e-mail.'; return;
     }
 
     var leitor = { id: uid(), papel: 'leitor', nome: nome, email: email, senha: senha, numero: proximoNumeroLeitor() };
@@ -344,11 +344,8 @@
 
   function telaLogin() {
     var biblio = rota.login === 'biblio';
-    var criar = biblio && semBibliotecario();
-    var titulo = criar ? 'Criar acesso do bibliotecário' : (biblio ? 'Entrar como bibliotecário' : 'Entrar como leitor');
-    var desc = criar
-      ? 'É o primeiro acesso. Defina o e-mail e a senha do responsável pela biblioteca.'
-      : (biblio ? 'Use a conta de administração da biblioteca.' : 'Use o e-mail e a senha do seu cadastro.');
+    var titulo = biblio ? 'Entrar como bibliotecário' : 'Entrar como leitor';
+    var desc = biblio ? 'Use a conta de administração da biblioteca.' : 'Use o e-mail e a senha do seu cadastro.';
 
     var defaultEmail = biblio ? 'bibliotecario@gmail.com' : '';
     var defaultSenha = biblio ? '123' : '';
@@ -362,11 +359,10 @@
       '<p class="sub" style="margin-top:4px">' + desc + '</p>' +
       '</div>' +
       '<form class="form" onsubmit="A.entrar(event)">' +
-      (criar ? '<label>Nome<input class="input" name="nome" required autocomplete="name"></label>' : '') +
       '<label>E-mail<input class="input" name="email" type="email" value="' + esc(defaultEmail) + '" required autocomplete="email"></label>' +
       '<label>Senha<input class="input" name="senha" type="password" value="' + esc(defaultSenha) + '" required autocomplete="current-password"></label>' +
       '<p class="erro" id="erro"></p>' +
-      '<button class="btn" type="submit">' + (criar ? 'Criar acesso' : 'Entrar') + '</button>' +
+      '<button class="btn" type="submit">Entrar</button>' +
       '</form>' +
       (biblio ? '<div style="text-align:center;margin-top:10px"><button class="link" onclick="A.abrirLogin(\'leitor\')">Sou leitor</button></div>'
               : '<div style="text-align:center;margin-top:10px"><button class="link" onclick="A.abrirCadastro()">Criar meu cadastro</button></div>') +
@@ -471,7 +467,8 @@
 
   A.buscarAcervo = function (v) {
     filtros.acervo = v;
-    document.getElementById('lista-acervo').innerHTML = listaLivros(v);
+    var el = document.getElementById('lista-acervo');
+    if (el) el.innerHTML = listaLivros(v);
   };
 
   A.novoLivro = function (ev) {
@@ -646,7 +643,8 @@
 
   A.setFiltro = function (campo, valor) {
     filtros[campo] = valor;
-    document.getElementById('lista-historico').innerHTML = listaHistorico();
+    var el = document.getElementById('lista-historico');
+    if (el) el.innerHTML = listaHistorico();
   };
 
   function secHistorico() {
@@ -844,11 +842,13 @@
 
   A.buscarCatalogo = function (v) {
     filtros.catalogo = v;
-    document.getElementById('lista-catalogo').innerHTML = listaCatalogo(usuarioAtual());
+    var el = document.getElementById('lista-catalogo');
+    if (el) el.innerHTML = listaCatalogo(usuarioAtual());
   };
   A.toggleDisponiveis = function (marcado) {
     filtros.disponiveis = !!marcado;
-    document.getElementById('lista-catalogo').innerHTML = listaCatalogo(usuarioAtual());
+    var el = document.getElementById('lista-catalogo');
+    if (el) el.innerHTML = listaCatalogo(usuarioAtual());
   };
 
   function secCatalogo() {
@@ -1087,11 +1087,13 @@
     if (rota.tela === 'leitor' && u && u.papel !== 'leitor') rota.tela = 'painel';
 
     var app = document.getElementById('app');
-    if (rota.tela === 'inicio') app.innerHTML = telaInicio();
-    else if (rota.tela === 'login') app.innerHTML = telaLogin();
-    else if (rota.tela === 'cadastro') app.innerHTML = telaCadastro();
-    else if (rota.tela === 'painel') app.innerHTML = telaPainel();
-    else app.innerHTML = telaLeitor();
+    if (app) {
+      if (rota.tela === 'inicio') app.innerHTML = telaInicio();
+      else if (rota.tela === 'login') app.innerHTML = telaLogin();
+      else if (rota.tela === 'cadastro') app.innerHTML = telaCadastro();
+      else if (rota.tela === 'painel') app.innerHTML = telaPainel();
+      else app.innerHTML = telaLeitor();
+    }
 
     if (ultimaTela !== rota.tela) {
       window.scrollTo(0, 0);
