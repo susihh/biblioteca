@@ -168,6 +168,21 @@
   }
   function salvar() { localStorage.setItem(CHAVE, JSON.stringify(db)); }
 
+  function garantirBibliotecarioPadrao() {
+    var existe = db.usuarios.some(function (u) { return u.papel === 'bibliotecario'; });
+    if (!existe) {
+      db.usuarios.push({
+        id: uid(),
+        papel: 'bibliotecario',
+        nome: 'Bibliotecário',
+        email: 'bibliotecario@gmail.com',
+        senha: '123',
+        numero: null
+      });
+      salvar();
+    }
+  }
+
   function usuarioAtual() {
     if (!db.sessao) return null;
     return db.usuarios.filter(function (u) { return u.id === db.sessao; })[0] || null;
@@ -335,6 +350,9 @@
       ? 'É o primeiro acesso. Defina o e-mail e a senha do responsável pela biblioteca.'
       : (biblio ? 'Use a conta de administração da biblioteca.' : 'Use o e-mail e a senha do seu cadastro.');
 
+    var defaultEmail = biblio ? 'bibliotecario@gmail.com' : '';
+    var defaultSenha = biblio ? '123' : '';
+
     return '<div class="tela">' +
       '<button class="voltar" onclick="A.voltarInicio()">&larr; Voltar</button>' +
       '<div class="card">' +
@@ -345,8 +363,8 @@
       '</div>' +
       '<form class="form" onsubmit="A.entrar(event)">' +
       (criar ? '<label>Nome<input class="input" name="nome" required autocomplete="name"></label>' : '') +
-      '<label>E-mail<input class="input" name="email" type="email" required autocomplete="email"></label>' +
-      '<label>Senha<input class="input" name="senha" type="password" required autocomplete="current-password"></label>' +
+      '<label>E-mail<input class="input" name="email" type="email" value="' + esc(defaultEmail) + '" required autocomplete="email"></label>' +
+      '<label>Senha<input class="input" name="senha" type="password" value="' + esc(defaultSenha) + '" required autocomplete="current-password"></label>' +
       '<p class="erro" id="erro"></p>' +
       '<button class="btn" type="submit">' + (criar ? 'Criar acesso' : 'Entrar') + '</button>' +
       '</form>' +
@@ -374,7 +392,8 @@
       '<div style="text-align:center;margin-top:10px"><button class="link" onclick="A.abrirLogin(\'leitor\')">Já tenho conta</button></div>' +
       '</div></div>';
   }
-    /* ---------- componentes ---------- */
+
+  /* ---------- componentes ---------- */
   function cabecalho(u, papel) {
     return '<header class="topo">' +
       '<div><p class="marca">' + esc(NOME_BIB) + '</p>' +
@@ -1082,6 +1101,7 @@
 
   /* ---------- início ---------- */
   db = carregar();
+  garantirBibliotecarioPadrao();
   var sessao = usuarioAtual();
   if (sessao) {
     rota.tela = sessao.papel === 'bibliotecario' ? 'painel' : 'leitor';
